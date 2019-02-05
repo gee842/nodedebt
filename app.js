@@ -42,6 +42,7 @@ var instructionsNewVisitor = function(req, res) {
       console.log(towrite);
 
     }
+      //?action=query&person=John
     else if (params['action'] == "query") {
       var recipient = params['person'];
       var totalsum = 0;
