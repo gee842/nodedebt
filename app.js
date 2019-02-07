@@ -1,3 +1,5 @@
+
+
 var http = require('http');
 var url = require("url");
 var querystring = require('querystring');
@@ -19,6 +21,8 @@ function removeDups(names) {
 // Code exactly the same as the previous one
 
 //?action=check
+//ID,From,To,Value,Date,Comment
+
 
 var instructionsNewVisitor = function(req, res) {
   var page = url.parse(req.url).pathname;
@@ -33,7 +37,7 @@ var instructionsNewVisitor = function(req, res) {
       towrite = '';
       transactiondb.find({}, function (err, docs) {
         for (var i = 0; i < docs.length; i++) {
-          towrite += ('{_id: ' + docs[i]._id + ', from: ' + docs[i].from +' , value: ' +  docs[i].value +', date: ' + docs[i].date + ', comment: ' + docs[i].comment + '}');
+          towrite += ('{_id: ' + docs[i]._id + ', from: ' + docs[i].Sentfrom + ', to: ' + docs[i].Sentto + ', value: ' +  docs[i].value +', date: ' + docs[i].date + ', comment: ' + docs[i].comment + '}');
           towrite += '\n'
         }
         res.write(towrite);
@@ -44,15 +48,21 @@ var instructionsNewVisitor = function(req, res) {
     }
       //?action=query&person=John
     else if (params['action'] == "query") {
-      var recipient = params['person'];
+      var person = params['person'];
       var totalsum = 0;
       var towrite = '';
-      transactiondb.find({from: recipient}, function (err, docs) {
+      transactiondb.find( {$or:[{Sentfrom: person},{Sentto: person}]}, function (err, docs) {
         for (var i = 0; i < docs.length; i++) {
-          towrite += ('{ value: ')
+          towrite += ('{ From: ')
+          towrite+= (docs[i].Sentfrom);
+          towrite += (', To: ')
+          towrite+= (docs[i].Sentto);
+          towrite += (', value: ')
           towrite+= (docs[i].value);
           towrite += ', comment: '
           towrite+=(docs[i].comment);
+          towrite += ', date: '
+          towrite+=(docs[i].date);
           towrite += '}\n'
           totalsum += docs[i].value;
         }
@@ -64,35 +74,66 @@ var instructionsNewVisitor = function(req, res) {
 
     }
 
-
-
-    //?action=pay&person=John&value=3&comment=abcd
-    else if (params['action'] == "pay") {
-      var recipient = params['person'];
-      var trademoney = parseFloat(params['value']);
-      var comment = params['comment'];
-      var lastID;
-      var today = new Date;
-      today = today.getDate() + '/' + (today.getMonth()+1) + '/' + today.getFullYear();
-      transactiondb.find({}, function (err, docs) {
-        if (docs.length > 0){
-          console.log(docs.length);
-
-          lastID = docs[docs.length-1]._id;
+    //?action=incoming&person=John
+        else if (params['action'] == "incoming") {
+      var person = params['person'];
+      var totalsum = 0;
+      var towrite = '';
+      transactiondb.find( {Sentto: person}, function (err, docs) {
+        for (var i = 0; i < docs.length; i++) {
+          towrite += ('{ From: ')
+          towrite+= (docs[i].Sentfrom);
+          towrite += (', To: ')
+          towrite+= (docs[i].Sentto);
+          towrite += (', value: ')
+          towrite+= (docs[i].value);
+          towrite += ', comment: '
+          towrite+=(docs[i].comment);
+          towrite += ', date: '
+          towrite+=(docs[i].date);
+          towrite += '}\n'
+          totalsum += docs[i].value;
         }
-        else {
-          lastID = 0;
-        }
-        var payload= { _id: lastID+1, from: recipient, value: -trademoney, date: today, comment: comment };
-        transactiondb.insert(payload, function (err, newDoc) {});
-        res.end("paid");
+        towrite+=("{Total: " + totalsum.toFixed(2) + '}');
+        console.log("Total: " + totalsum.toFixed(2));
+        res.write(towrite);
+        res.end();
       });
 
-      console.log("paid");
     }
-    //?action=lend&person=John&value=3&comment=abcd
-    else if (params['action'] == "lend") {
-      var recipient = params['person'];
+
+    //?action=incoming&person=John
+        else if (params['action'] == "outgoing") {
+      var person = params['person'];
+      var totalsum = 0;
+      var towrite = '';
+      transactiondb.find( {Sentfrom: person}, function (err, docs) {
+        for (var i = 0; i < docs.length; i++) {
+          towrite += ('{ From: ')
+          towrite+= (docs[i].Sentfrom);
+          towrite += (', To: ')
+          towrite+= (docs[i].Sentto);
+          towrite += (', value: ')
+          towrite+= (docs[i].value);
+          towrite += ', comment: '
+          towrite+=(docs[i].comment);
+          towrite += ', date: '
+          towrite+=(docs[i].date);
+          towrite += '}\n'
+          totalsum += docs[i].value;
+        }
+        towrite+=("{Total: " + totalsum.toFixed(2) + '}');
+        console.log("Total: " + totalsum.toFixed(2));
+        res.write(towrite);
+        res.end();
+      });
+
+    }
+
+    //?action=transaction&Sentfrom=John&Sentto=Peter&value=3&comment=abcd
+    else if (params['action'] == "transaction") {
+      var Sentfrom = params['Sentfrom'];
+      var Sentto = params['Sentto'];
       var trademoney = parseFloat(params['value']);
       var lastID;
       var comment = params['comment'];
@@ -107,7 +148,7 @@ var instructionsNewVisitor = function(req, res) {
         else {
           lastID = 0;
         }
-        var payload= { _id: lastID+1, from: recipient, value: trademoney, date: today, comment: comment };
+        var payload= { _id: lastID+1, Sentfrom: Sentfrom, Sentto: Sentto, value: trademoney, date: today, comment: comment };
         transactiondb.insert(payload, function (err, newDoc) {});
         res.end("lent");
       });
@@ -117,7 +158,7 @@ var instructionsNewVisitor = function(req, res) {
     else if (params['action'] == "checkuser") {
       var recipient = params['person'];
       var result;
-      transactiondb.find({from: recipient}, function (err, docs) {
+      transactiondb.find({$or:[{Sentfrom: person},{Sentto: person}]}, function (err, docs) {
         if (docs.length>0)
         {
           result = '1';
@@ -138,7 +179,8 @@ var instructionsNewVisitor = function(req, res) {
         if (docs.length>0)
         {
           for (var i = 0; i < docs.length; i++) {
-            names.push(docs[i].from);
+            names.push(docs[i].Sentfrom);
+            names.push(docs[i].Sentto);
           }
           unique = removeDups(names);
           for (var i = 0; i < unique.length; i++) {
