@@ -47,16 +47,38 @@ var instructionsNewVisitor = function(req, res) {
       var recipient = params['person'];
       var totalsum = 0;
       var towrite = '';
+      res.write('Debts to User: ' + recipient + ' \n');
       transactiondb.find({from: recipient}, function (err, docs) {
         for (var i = 0; i < docs.length; i++) {
-          towrite += ('{ value: ')
-          towrite+= (docs[i].value);
+          towrite += ('{ date: ')
+          towrite += (docs[i].date)
+          if (docs[i].value > 0)
+          {
+            towrite += (', type: Lent' );
+          }
+          else
+          {
+            towrite += (', type: Borrowed');
+          }
+          towrite += (', value: ')
+          towrite+= (Math.abs(docs[i].value));
           towrite += ', comment: '
           towrite+=(docs[i].comment);
           towrite += '}\n'
           totalsum += docs[i].value;
         }
-        towrite+=("{Total: " + totalsum.toFixed(2) + '}');
+        if (totalsum > 0)
+        {
+          towrite+=("{They Owe: " + Math.abs(totalsum).toFixed(2) + '}');
+        }
+        else
+        {
+          towrite+=("{You Owe: " + Math.abs(totalsum).toFixed(2) + '}');
+        }
+
+
+
+        
         console.log("Total: " + totalsum.toFixed(2));
         res.write(towrite);
         res.end();
@@ -66,8 +88,8 @@ var instructionsNewVisitor = function(req, res) {
 
 
 
-    //?action=pay&person=John&value=3&comment=abcd
-    else if (params['action'] == "pay") {
+    //?action=incoming&person=John&value=3&comment=abcd
+    else if (params['action'] == "incoming") {
       var recipient = params['person'];
       var trademoney = parseFloat(params['value']);
       var comment = params['comment'];
@@ -85,13 +107,13 @@ var instructionsNewVisitor = function(req, res) {
         }
         var payload= { _id: lastID+1, from: recipient, value: -trademoney, date: today, comment: comment };
         transactiondb.insert(payload, function (err, newDoc) {});
-        res.end("paid");
+        res.end("received");
       });
 
-      console.log("paid");
+      console.log("received");
     }
-    //?action=lend&person=John&value=3&comment=abcd
-    else if (params['action'] == "lend") {
+    //?action=outgoing&person=John&value=3&comment=abcd
+    else if (params['action'] == "outgoing") {
       var recipient = params['person'];
       var trademoney = parseFloat(params['value']);
       var lastID;
@@ -109,8 +131,9 @@ var instructionsNewVisitor = function(req, res) {
         }
         var payload= { _id: lastID+1, from: recipient, value: trademoney, date: today, comment: comment };
         transactiondb.insert(payload, function (err, newDoc) {});
-        res.end("lent");
+        res.end("sent");
       });
+      console.log("sent");
 
     }
     //?action=checkuser&person=John
