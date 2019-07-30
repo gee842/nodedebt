@@ -1,6 +1,8 @@
 # nodedebt v0.03
 
-## List all transactions:
+## Endpoints:
+
+List all Transactions: 
 ```/?action=check```
 
  Check the existence of a User:
