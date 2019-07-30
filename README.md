@@ -1,28 +1,7 @@
-# nodedebt v0.01
-simple node api for person debt management
+# nodedebt v0.03
 
-List all transactions:
-//?action=check
-
-Pay Person:
-//?action=pay&person=John&value=3.33&comment=abcd
-
-Lend to Person:
-//?action=lend&person=John&value=3&comment=abcd
-
-Check all Transactions with a user:
-//?action=query&person=John
- 
- Check the existence of a User:
-//?action=checkuser&person=John
-
-Lists all Unique users:
-//?action=listusers
-
-# nodedebt v0.02
-
-List all transactions:
-//?action=check
+## List all transactions:
+```//?action=check```
 
  Check the existence of a User:
 //?action=checkuser&person=John
