@@ -1,5 +1,7 @@
 # nodedebt v0.03
 
+Simple way to track debts between people (Node CLI Facing only, requires FrontEnd for on-field usage)
+
 ## Endpoints:
 
 List all Transactions: 
