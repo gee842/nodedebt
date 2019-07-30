@@ -21,7 +21,8 @@ Check all outgoing/incoming transactions:
 Make a transaction:
 ```/?action=transaction&Sentfrom=John&Sentto=Peter&value=3&comment=abcd```
 
-# nodedebt v0.03
+# Changelog
+### 0.03:
 Made it more clear which direction the debt is facing through the user query
 
 
