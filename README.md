@@ -18,6 +18,7 @@ Check all transactions for person:
 
 Check all outgoing/incoming transactions:
 ```/?action=outgoing&person=John```
+
 ```/?action=incoming&person=John```
 
 Make a transaction:
