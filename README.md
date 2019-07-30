@@ -17,6 +17,7 @@ Check all transactions for person:
 ```/?action=query&person=John```
 
 Check all outgoing/incoming transactions:
+
 ```/?action=outgoing&person=John```
 
 ```/?action=incoming&person=John```
